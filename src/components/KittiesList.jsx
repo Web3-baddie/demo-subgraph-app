@@ -1,4 +1,5 @@
 import { cacheExchange, createClient, fetchExchange, Provider, useQuery } from 'urql';
+import './KittiesList.css';
 
 const client = createClient({
   url: 'https://gateway.thegraph.com/api/a1f8194a9b36a7bc1703a8fe48b62343/subgraphs/id/Esag956C6WUQwfP8SstPAXCmd2QhApYprrGxcvfydE7c',
@@ -6,13 +7,13 @@ const client = createClient({
 });
 
 const QUERY = `{
-  contracts(first: 5) {
+  contracts(first: 9) {
     id
     asERC721 {
       id
     }
   }
-  accounts(first: 5) {
+  accounts(first: 9) {
     id
     tokens {
       id
@@ -30,10 +31,31 @@ const ExampleComponent = () => {
   const [result] = useQuery({ query: QUERY });
   const { data, fetching, error } = result;
 
-  if (fetching) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-  return <pre>{JSON.stringify(data, null, 2)}</pre>
-}
+  if (fetching) return <p className="message">Loading...</p>;
+  if (error) return <p className="message error-message">Error: {error.message}</p>;
+
+  return (
+    <div className="component-container">
+      <div className="card">
+        <h1>Fetched Accounts</h1>
+        {data?.accounts?.map((account, index) => (
+          <div key={index} className="account-container">
+            <h2 className="account-title">Account ID: {account.id}</h2>
+            <div className="token-info">
+              <strong>Tokens:</strong> {account.tokens.map(token => token.id).join(', ')}
+            </div>
+            <div className="token-info">
+              <strong>Delegations Owner:</strong> {account.delegationsOwner?.map(owner => owner.id).join(', ') || 'None'}
+            </div>
+            <div className="token-info">
+              <strong>Delegations Operator:</strong> {account.delegationsOperator?.map(operator => operator.id).join(', ') || 'None'}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const WrappedExampleComponent = () => (
   <Provider value={client}>
